@@ -1,19 +1,45 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useContext } from "react";
+import { Link, Navigate, useLocation } from "react-router-dom";
+import { Context } from "../store/appContext";
 
 export const Navbar = () => {
-	return (
-		<nav className="navbar navbar-light bg-light">
-			<div className="container">
-				<Link to="/">
-					<span className="navbar-brand mb-0 h1">React Boilerplate</span>
-				</Link>
-				<div className="ml-auto">
-					<Link to="/demo">
-						<button className="btn btn-primary">Check the Context in action</button>
-					</Link>
-				</div>
-			</div>
-		</nav>
-	);
+  const { store, actions } = useContext(Context);
+  const sampleLocation = useLocation();
+
+  return (
+    <nav className="navbar">
+      <div className="container">
+        {" "}
+        <div className="ml-auto">
+          {" "}
+          {store.auth === true ? (
+            <Link to="/home">
+              <button className="btn"> Home </button>{" "}
+            </Link>
+          ) : (
+            <Link to="/">
+              <button className="btn"> Sign Up </button>{" "}
+            </Link>
+          )}{" "}
+        </div>{" "}
+        {/* {sampleLocation.pathname === "/" ? null : (
+          <Link to="/">
+            <button className="btn"> Sign up </button>{" "}
+          </Link>
+        )} */}
+        <div className="ml-auto">
+          {" "}
+          {store.auth === true ? (
+            <button onClick={() => actions.logout()} className="btn">
+              Logout{" "}
+            </button>
+          ) : (
+            <Link to="/login">
+              <button className="btn"> Log in </button>{" "}
+            </Link>
+          )}{" "}
+        </div>{" "}
+      </div>{" "}
+    </nav>
+  );
 };

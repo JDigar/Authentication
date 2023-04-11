@@ -7,10 +7,16 @@ from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
 from api.utils import APIException, generate_sitemap
-from api.models import db
+from api.models import db, User
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+
+
 
 #from models import Person
 
@@ -33,6 +39,10 @@ db.init_app(app)
 # Allow CORS requests to this API
 CORS(app)
 
+# Setup the Flask-JWT-Extended extension
+app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
+jwt = JWTManager(app)
+
 # add the admin
 setup_admin(app)
 
@@ -54,15 +64,27 @@ def sitemap():
         return generate_sitemap(app)
     return send_from_directory(static_file_dir, 'index.html')
 
-# any other endpoint will try to serve it like a static file
-@app.route('/<path:path>', methods=['GET'])
-def serve_any_other_file(path):
-    if not os.path.isfile(os.path.join(static_file_dir, path)):
-        path = 'index.html'
-    response = send_from_directory(static_file_dir, path)
-    response.cache_control.max_age = 0 # avoid cache memory
-    return response
+# # any other endpoint will try to serve it like a static file
+# @app.route('/<path:path>', methods=['GET'])
+# def serve_any_other_file(path):
+#     if not os.path.isfile(os.path.join(static_file_dir, path)):
+#         path = 'index.html'
+#     response = send_from_directory(static_file_dir, path)
+#     response.cache_control.max_age = 0 # avoid cache memory
+#     return response
 
+
+
+
+@app.route("/user", methods=["GET"])
+@jwt_required()
+def get_user():
+    # Access the identity of the current user with get_jwt_identity
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
+    print(user)
+
+    return jsonify(logged_in_as=current_user_email), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
